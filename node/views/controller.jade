@@ -1,5 +1,6 @@
+extends layout
+
 block content
-  input#pageSelector
-  button#goButton.btn-primary Go to page
+  button#temp.hidden.btn-primary Go to page <span class="pageId"></span>
 
   != js('controller')

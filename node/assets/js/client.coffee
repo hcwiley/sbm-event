@@ -16,13 +16,16 @@
 @a.entries = {}
 
 $(window).ready ->
-  $('#main').css 'background-image', "url(/img/gallery/IMG_#{a.pageId}.JPG)"
+  $('#main').css 'background-image', "url(/img/gallery/#{a.pageId}.jpg)"
   # set up the socket.io and OSC
   socket = io.connect "http://localhost" 
 
   socket.on "connection", (msg) ->
     $("#main").append("<h2>#{msg}</h2>")
     socket.emit "pageId", a.pageId
+
+  socket.on "activate", (msg) ->
+    $("#main").html "IM AWESOME"
 
   #osc_client = new OscClient {
     #host: "127.0.0.1"

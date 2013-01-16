@@ -19,6 +19,23 @@
 $(window).ready ->
   # set up the socket.io and OSC
   socket = io.connect "http://localhost" 
+
+  socket.on "connection", (data) ->
+    socket.emit "getPages", ""
+
+  socket.on "activePages", (data) ->
+    count = Object.keys data
+    for i in count
+      console.log data[i]
+      page = data[i]
+      button = $("#temp").clone()
+      $(button).removeClass("hidden").find(".pageId").text(page)
+      $('#main').append(button)
+      $(button).data "id", i
+      $(button).click ->
+        socket.emit "clickedPage", $(@).data "id"
+    
+    
   
   $('#goButton').click ->
     socket.emit "updatePage", $("#pageSelector").val()

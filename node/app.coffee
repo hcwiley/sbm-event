@@ -56,15 +56,28 @@ app.configure ->
 
 entries = {}
 
+activePages = {}
+socketMap = {}
+
 io.sockets.on "connection",  (socket) ->
   socket.on "pageId", (msg) ->
-    activePages.push msg
-    console.log msg
+    activePages[socket.id] = msg
+    socketMap[socket.id] = socket
+    #console.log socketMap
 
   socket.emit "connection", "I am your father"
 
+  socket.on "disconnect", ->
+    delete activePages[socket.id]
 
-activePages = []
+  socket.on "getPages", () ->
+    console.log "sending pages"
+    socket.emit "activePages", activePages
+
+  socket.on "clickedPage", (id) ->
+    console.log activePages[id]
+    socketMap[id].emit "activate", "foo"
+
 
 # UI routes
 app.get "/", (req, res) ->
