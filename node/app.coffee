@@ -64,19 +64,19 @@ io.sockets.on "connection",  (socket) ->
   socket.on "pageId", (msg) ->
     activePages[socket.id] = msg
     socketMap[socket.id] = socket
-    controller.emit "activePages", activePages
+    controller?.emit "activePages", activePages
     console.log socket.id
 
   socket.emit "connection", "I am your father"
 
   socket.on "disconnect", ->
     delete activePages[socket.id]
-    controller.emit "activePages", activePages
+    controller?.emit "activePages", activePages
 
   socket.on "getPages", () ->
     console.log "sending pages"
     controller = socket
-    controller.emit "activePages", activePages
+    controller?.emit "activePages", activePages
 
   socket.on "clickedPage", (id) ->
     console.log activePages[id]
@@ -85,6 +85,19 @@ io.sockets.on "connection",  (socket) ->
     for i in count
       if i != id
         socketMap[i].emit "deactivate", "foo"
+
+  socket.on "cycle", () ->
+    console.log "cycle"
+    length = Object.keys socketMap
+    c = 0
+    for i in length
+      setTimeout ->
+        socketMap[i].emit "activate", "foo"
+        setTimeout ->
+          socketMap[i].emit "deactivate", "foo"
+        , 500 * c
+      , 500 * c++
+
 
 
 # UI routes
