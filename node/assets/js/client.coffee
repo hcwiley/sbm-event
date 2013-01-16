@@ -16,7 +16,6 @@
 @a.entries = {}
 
 $(window).ready ->
-  $('#main').css 'background-image', "url(/img/gallery/#{a.pageId}.jpg)"
   # set up the socket.io and OSC
   socket = io.connect "http://localhost" 
 
@@ -25,7 +24,10 @@ $(window).ready ->
     socket.emit "pageId", a.pageId
 
   socket.on "activate", (msg) ->
-    $("#main").html "IM AWESOME"
+    $('#main').css 'background-image', "url(/img/gallery/#{a.pageId}.jpg)"
+
+  socket.on "deactivate", (msg) ->
+    $('#main').css 'background-image', ""
 
   #osc_client = new OscClient {
     #host: "127.0.0.1"

@@ -77,6 +77,10 @@ io.sockets.on "connection",  (socket) ->
   socket.on "clickedPage", (id) ->
     console.log activePages[id]
     socketMap[id].emit "activate", "foo"
+    count = Object.keys socketMap
+    for i in count
+      if i != id
+        socketMap[i].emit "deactivate", "foo"
 
 
 # UI routes
