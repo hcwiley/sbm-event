@@ -1,0 +1,10 @@
+#signInModal.modal.hide.fade
+  .modal-header
+    button.close(data-dismiss='modal') &times;
+    h3 Sign In or Sign Up
+  .modal-body
+    h4 Email Registration
+    form.span5.offset-1(action='/email', method='post')
+      input#email.span5(name='email', type='text', placeholder='Email', tabindex=1)
+      br
+      input.submit.btn(type='submit') Sign in

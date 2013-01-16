@@ -1,0 +1,12 @@
+extends layout
+
+block content
+  h1#pageId=pageId
+  
+  
+  != js('client')
+
+  :coffeescript
+    @a = @a || {}
+    @a.pageId = '#{pageId}'
+

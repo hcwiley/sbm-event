@@ -1,0 +1,20 @@
+{
+  "name"      : "mediaGallery",
+  "version"   : "0.0.1",
+  "dependencies": {
+    "coffee-script"         : "1.4.0",
+    "express"               : "3.0.3",
+    "connect-assets"        : "2.2.1",
+    "cookie"                : "0.0.4",
+    "jade"                  : "*",
+    "less"                  : "*",
+    "less-middleware"       : "*",
+    "mongoose"              : "3.0.1",
+    "connect-mongo"         : "*",
+    "socket.io"             : "0.9.6",
+    "socket.io-client"      : "*",
+    "osc.io"                : "0.0.2",
+    "twitter-bootstrap"     : "*",
+    "supervisor"            : "0.3.2"
+  }
+}
