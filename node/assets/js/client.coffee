@@ -17,7 +17,7 @@
 
 $(window).ready ->
   # set up the socket.io and OSC
-  socket = io.connect "http://localhost" 
+  socket = io.connect() 
 
   socket.on "connection", (msg) ->
     $("#main").append("<h2>#{msg}</h2>")

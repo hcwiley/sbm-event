@@ -24,12 +24,13 @@ $(window).ready ->
     socket.emit "getPages", ""
 
   socket.on "activePages", (data) ->
+    $(".btn-primary:not('#temp')").remove()
     count = Object.keys data
     for i in count
       console.log data[i]
       page = data[i]
       button = $("#temp").clone()
-      $(button).removeClass("hidden").find(".pageId").text(page)
+      $(button).removeClass("hidden").removeAttr("id").find(".pageId").text(page)
       $('#main').append(button)
       $(button).data "id", i
       $(button).click ->

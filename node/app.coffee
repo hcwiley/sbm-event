@@ -58,21 +58,25 @@ entries = {}
 
 activePages = {}
 socketMap = {}
+controller = null
 
 io.sockets.on "connection",  (socket) ->
   socket.on "pageId", (msg) ->
     activePages[socket.id] = msg
     socketMap[socket.id] = socket
-    #console.log socketMap
+    controller.emit "activePages", activePages
+    console.log socket.id
 
   socket.emit "connection", "I am your father"
 
   socket.on "disconnect", ->
     delete activePages[socket.id]
+    controller.emit "activePages", activePages
 
   socket.on "getPages", () ->
     console.log "sending pages"
-    socket.emit "activePages", activePages
+    controller = socket
+    controller.emit "activePages", activePages
 
   socket.on "clickedPage", (id) ->
     console.log activePages[id]
