@@ -24,7 +24,7 @@ $(window).ready ->
     socket.emit "getPages", ""
 
   $("#cycle").click () ->
-     socket.emit "cycle"
+     socket.emit "cycle", "2"
 
   socket.on "activePages", (data) ->
     $(".scrn").remove()

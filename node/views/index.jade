@@ -1,12 +1,9 @@
 extends layout
 
 block content
-  h1#pageId=pageId
+  h1 Hello World
   
   
-  != js('client')
-
   :coffeescript
     @a = @a || {}
-    @a.pageId = '#{pageId}'
 

@@ -62,7 +62,7 @@ controller = null
 
 io.sockets.on "connection",  (socket) ->
   socket.on "pageId", (msg) ->
-    activePages[socket.id] = msg
+    activePages[msg] = socket.id
     socketMap[socket.id] = socket
     controller?.emit "activePages", activePages
     console.log socket.id
@@ -86,17 +86,36 @@ io.sockets.on "connection",  (socket) ->
       if i != id
         socketMap[i].emit "deactivate", "foo"
 
-  socket.on "cycle", () ->
-    console.log "cycle"
+  # this flips the socket from active, then back to deactive
+  delayActivateFlip = (soc, time, c, speed) ->
+    speed = speed || 500
+    setTimeout ->
+      soc.emit "activate", "foo"
+    , speed * c
+    setTimeout ->
+      soc.emit "deactivate", "foo"
+    , speed * ( c + 1 )
+
+  # this does a cycle of all screens calling delayActiveFlip
+  doCycle = (time, speed) ->
+    setTimeout ->
+      console.log "cycle: #{time}"
+      c = 0
+      length = Object.keys socketMap
+      for i in length
+        delayActivateFlip socketMap[i], time, c++, speed
+    , speed * time
+
+  # cycle through as many times as we need to
+  socket.on "cycle", (times) ->
+    times = times || 2
     length = Object.keys socketMap
-    c = 0
     for i in length
-      setTimeout ->
-        socketMap[i].emit "activate", "foo"
-        setTimeout ->
-          socketMap[i].emit "deactivate", "foo"
-        , 500 * c
-      , 500 * c++
+      socketMap[i].emit "deactivate", "foo"
+    time = 0
+    speed = 500
+    while time < times
+      doCycle(time++, speed)
 
 
 
@@ -110,7 +129,7 @@ app.get "/controller", (req, res) ->
     title: "Media Event"
 
 app.get "/:id", (req, res) ->
-  res.render "index.jade",
+  res.render "page.jade",
     title: "Media Event"
     pageId: req.params.id
 

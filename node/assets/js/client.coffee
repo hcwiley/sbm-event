@@ -24,10 +24,10 @@ $(window).ready ->
     socket.emit "pageId", a.pageId
 
   socket.on "activate", (msg) ->
-    $('#main').css 'background-image', "url(/img/gallery/#{a.pageId}.jpg)"
+    $('#content').show()
 
   socket.on "deactivate", (msg) ->
-    $('#main').css 'background-image', ""
+    $('#content').hide()
 
   #osc_client = new OscClient {
     #host: "127.0.0.1"
