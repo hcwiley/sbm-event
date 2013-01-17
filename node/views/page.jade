@@ -1,0 +1,14 @@
+extends layout
+
+block content
+  h1#pageId=pageId
+  #content
+    img(src='/img/gallery/#{pageId}.jpg')
+  
+  
+  != js('client')
+
+  :coffeescript
+    @a = @a || {}
+    @a.pageId = '#{pageId}'
+
