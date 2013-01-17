@@ -33,7 +33,7 @@ $(window).ready ->
       console.log data[i]
       page = data[i]
       button = $("#temp").clone()
-      $(button).removeClass("hidden").removeAttr("id").find(".pageId").text(page)
+      $(button).removeClass("hidden").removeAttr("id").find(".pageId").text(i)
       $(button).addClass('scrn')
       $('#main').append(button)
       $(button).data "id", i
