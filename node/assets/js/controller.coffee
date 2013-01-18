@@ -36,7 +36,7 @@ $(window).ready ->
       $(button).removeClass("hidden").removeAttr("id").find(".pageId").text(i)
       $(button).addClass('scrn')
       $('#main').append(button)
-      $(button).data "id", i
+      $(button).data "id", data[i]
       $(button).click ->
         socket.emit "clickedPage", $(@).data "id"
     

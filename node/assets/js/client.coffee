@@ -20,14 +20,31 @@ $(window).ready ->
   socket = io.connect() 
 
   socket.on "connection", (msg) ->
-    $("#main").append("<h2>#{msg}</h2>")
     socket.emit "pageId", a.pageId
+    socket.emit "getContent", a.pageId
 
   socket.on "activate", (msg) ->
-    $('#content').show()
+    $("#level1").fadeIn()
+    $(".level2").fadeOut()
+    $("#home").fadeOut 400
+    #$('#content').show()
 
   socket.on "deactivate", (msg) ->
-    $('#content').hide()
+    $("#home").fadeIn 400
+    $("#level1").fadeIn()
+    $(".level2").fadeOut()
+    #$('#content').hide()
+
+  socket.on "content", (content) ->
+    for i, json of content
+      if "#{i}" != "main"
+        console.log i
+        level2 = $("<div class='level2 #{i}'></div>")
+        for j, level1 of json
+          #console.log "#{j} -> "
+          div = $(_.template($('#square-template').html(), level1))
+          $(level2).append(div)
+        $('#main').append level2
 
   #osc_client = new OscClient {
     #host: "127.0.0.1"
@@ -43,5 +60,10 @@ $(window).ready ->
     #a.user.updatePosition data  if data.hands
     #a.user.set({'status': data.user })  if data.user
 
+
+  $('.level1').click () ->
+    me = @
+    $('#level1').fadeOut 400, () ->
+      $(".level2.#{$(me).data('sub')}").fadeIn 400
 
 

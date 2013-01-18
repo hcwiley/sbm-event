@@ -10,6 +10,7 @@ osc = require("osc.io")
 mongoose = require("mongoose")
 MongoStore = require("connect-mongo")(express)
 sessionStore = new MongoStore(url: config.mongodb)
+fs = require("fs")
 
 # connect the database
 mongoose.connect config.mongodb
@@ -58,13 +59,79 @@ entries = {}
 
 activePages = {}
 socketMap = {}
+content = {}
 controller = null
+
+basePath = "./public/img/gallery/"
+urlBase = "/img/gallery/"
+
+doFirstLevel = (first, next) ->
+  content[first] = {}
+  fs.readdir "#{basePath}#{first}", (err, secondLevel) ->
+    secondLevel = secondLevel.toString().replace(".DS_Store,","").split(',')
+    for second in secondLevel
+      doSecondLevel(first, second, (i) ->
+        if "#{i}" == "#{( secondLevel.length - 2 )}"
+          next(first)
+      )
+
+doSecondLevel = (first, second, next) ->
+  if "#{second}" == 'main.jpg'
+    content[first].main = "#{urlBase}#{first}/#{second}"
+  else
+    content[first][second] = {}
+    fs.readdir "#{basePath}#{first}/#{second}", (err, files) ->
+      files = files.toString().replace(".DS_Store,","").split(',')
+      count = 0
+      for file in files
+        doFileLevel(first, second, file, count++, (i) ->
+          if "#{i}" == "#{( files.length - 1 )}"
+            next(second)
+        )
+
+doFileLevel = (first, second, file, count, next) ->
+  content[first][second] = content[first][second] || {}
+  #console.log "file #{file}"
+  if file.match(".txt")
+    fs.readFile "#{basePath}#{first}/#{second}/#{file}", (err, lines) ->
+      #console.log "text file: #{lines}"
+      file = file.replace(".txt","")
+      content[first][second][file] = content[first][second][file] || {}
+      content[first][second][file].text = "#{lines}"
+      next(count)
+  else if file.match(".jpg") || file.match(".png")
+    name = file.replace(".jpg","").replace(".png","")
+    content[first][second][name] = content[first][second][name] || {}
+    #console.log "first: #{first}, second #{second}, file #{name}"
+    content[first][second][name].img = "#{urlBase}#{first}/#{second}/#{file}"
+    next(count)
+
+getContent = (next) ->
+  fs.readdir "#{basePath}", (err, firstLevel) ->
+    firstLevel = firstLevel.toString().replace(".DS_Store,","").split(',')
+    for first in firstLevel
+      #console.log "first #{first}"
+      doFirstLevel(first, (i) ->
+        #console.log "return doFrist #{i}"
+        if firstLevel.indexOf(i) == ( firstLevel.length - 1 )
+          #console.log "done with first"
+          next()
+      )
+
+getContent ->
+  #console.log "cotent #{JSON.stringify(content)}"
+  count = Object.keys socketMap
+  for i in count
+    socketMap[i]?.emit "content", "#{JSON.stringify(content)}"
 
 io.sockets.on "connection",  (socket) ->
   socket.on "pageId", (msg) ->
     activePages[msg] = socket.id
     socketMap[socket.id] = socket
     controller?.emit "activePages", activePages
+
+    socket.emit "content", content[msg]
+
     console.log socket.id
 
   socket.emit "connection", "I am your father"
@@ -77,6 +144,10 @@ io.sockets.on "connection",  (socket) ->
     console.log "sending pages"
     controller = socket
     controller?.emit "activePages", activePages
+
+  socket.on "getContent", () ->
+    console.log "youlll get it"
+    #socket?.emit "content", JSON.stringify(content)
 
   socket.on "clickedPage", (id) ->
     console.log activePages[id]
