@@ -70,24 +70,22 @@ doFirstLevel = (first, next) ->
   fs.readdir "#{basePath}#{first}", (err, secondLevel) ->
     secondLevel = secondLevel.toString().replace(".DS_Store,","").split(',')
     for second in secondLevel
+      console.log("second: #{second}")
       doSecondLevel(first, second, (i) ->
         if "#{i}" == "#{( secondLevel.length - 2 )}"
           next(first)
       )
 
 doSecondLevel = (first, second, next) ->
-  if "#{second}" == 'main.jpg'
-    content[first].main = "#{urlBase}#{first}/#{second}"
-  else
-    content[first][second] = {}
-    fs.readdir "#{basePath}#{first}/#{second}", (err, files) ->
-      files = files.toString().replace(".DS_Store,","").split(',')
-      count = 0
-      for file in files
-        doFileLevel(first, second, file, count++, (i) ->
-          if "#{i}" == "#{( files.length - 1 )}"
-            next(second)
-        )
+  content[first][second] = {}
+  fs.readdir "#{basePath}#{first}/#{second}", (err, files) ->
+    files = files.toString().replace(".DS_Store,","").split(',')
+    count = 0
+    for file in files
+      doFileLevel(first, second, file, count++, (i) ->
+        if "#{i}" == "#{( files.length - 1 )}"
+          next(second)
+      )
 
 doFileLevel = (first, second, file, count, next) ->
   content[first][second] = content[first][second] || {}
@@ -110,9 +108,9 @@ getContent = (next) ->
   fs.readdir "#{basePath}", (err, firstLevel) ->
     firstLevel = firstLevel.toString().replace(".DS_Store,","").split(',')
     for first in firstLevel
-      #console.log "first #{first}"
+      console.log "first #{first}"
       doFirstLevel(first, (i) ->
-        #console.log "return doFrist #{i}"
+        console.log "return doFrist #{i}"
         if firstLevel.indexOf(i) == ( firstLevel.length - 1 )
           #console.log "done with first"
           next()

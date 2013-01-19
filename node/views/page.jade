@@ -2,14 +2,7 @@ extends layout
 
 block content
   #home
-    img(src='/img/gallery/#{pageId}/main.jpg')
   #level1
-    .level1.main(data-sub="0")
-      img(src='/img/gallery/#{pageId}/0/0.jpg')
-    .level1.side.top(data-sub="1")
-      img(src='/img/gallery/#{pageId}/1/0.jpg')
-    .level1.side.bottom(data-sub="2")
-      img(src='/img/gallery/#{pageId}/2/0.jpg')
 
 
   
@@ -17,13 +10,12 @@ block content
   != js('client')
 
   script(type='javascript/template', id="square-template")
-    <div class="square">
-    <div class="img-wrapper">
+    <div class="level1">
     <img src="<%= img %>" />
     </div>
-    <div class="text">
-    <p> <%= text %> </p>
-    </div>
+  script(type='javascript/template', id="hero-template")
+    <div class="hero">
+    <img src="<%= img %>" />
     </div>
 
 

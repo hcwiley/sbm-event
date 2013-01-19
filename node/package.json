@@ -1,6 +1,14 @@
 {
-  "name"      : "mediaGallery",
+  "name"      : "mediaEvent",
   "version"   : "0.0.1",
+  "private": true,
+  "engines": {
+    "node": ">0.8"
+  },
+  "subdomain": "mediaEvent",
+  "scripts": {
+    "start": "node app.js"
+  },
   "dependencies": {
     "coffee-script"         : "1.4.0",
     "express"               : "3.0.3",
