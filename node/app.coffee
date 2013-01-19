@@ -61,6 +61,7 @@ activePages = {}
 socketMap = {}
 content = {}
 controller = null
+tvSocket = null
 
 basePath = "./public/img/gallery/"
 urlBase = "/img/gallery/"
@@ -97,7 +98,7 @@ doFileLevel = (first, second, file, count, next) ->
       content[first][second][file] = content[first][second][file] || {}
       content[first][second][file].text = "#{lines}"
       next(count)
-  else if file.match(".jpg") || file.match(".png")
+  else if file.toLowerCase().match(".jpg") || file.toLowerCase().match(".png")
     name = file.replace(".jpg","").replace(".png","")
     content[first][second][name] = content[first][second][name] || {}
     #console.log "first: #{first}, second #{second}, file #{name}"
@@ -124,9 +125,13 @@ getContent ->
 
 io.sockets.on "connection",  (socket) ->
   socket.on "pageId", (msg) ->
-    activePages[msg] = socket.id
-    socketMap[socket.id] = socket
-    controller?.emit "activePages", activePages
+    if "#{msg}" == "#{-1}"
+      tvSocket = socket
+      tvSocket.emit "active", -1
+    else
+      activePages[msg] = socket.id
+      socketMap[socket.id] = socket
+      controller?.emit "activePages", activePages
 
     socket.emit "content", content[msg]
 
@@ -147,9 +152,21 @@ io.sockets.on "connection",  (socket) ->
     console.log "youlll get it"
     #socket?.emit "content", JSON.stringify(content)
 
+  socket.on "hero", (src) ->
+    console.log "new hero: #{src}"
+    tvSocket?.emit "hero", {img: src}
+
   socket.on "clickedPage", (id) ->
     console.log activePages[id]
+    activatePage id
+
+  socket.on "click", (div) ->
+    tvSocket?.emit "clicked", div
+
+  activatePage = (id) ->
     socketMap[id].emit "activate", "foo"
+    tvSocket.emit "active", id
+    socket
     count = Object.keys socketMap
     for i in count
       if i != id
@@ -196,6 +213,11 @@ app.get "/", (req, res) ->
 app.get "/controller", (req, res) ->
   res.render "controller.jade",
     title: "Media Event"
+
+app.get "/tv", (req, res) ->
+  res.render "tv.jade",
+    title: "Media Event"
+    pageId: -1
 
 app.get "/:id", (req, res) ->
   res.render "page.jade",

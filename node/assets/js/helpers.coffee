@@ -8,3 +8,17 @@
   norm = (value - fromMin) / (fromMax - fromMin).toFixed(1)
   norm * (toMax - toMin) + toMin
 
+Array.prototype.remove = (from, to) ->
+  rest = @.slice((to || from) + 1 || @.length)
+  if from < 0
+    @.length = @.length + from
+  else
+    @.length = from
+  return @.push.apply(@, rest)
+
+@random = (min, max) ->
+  if !max
+    max = min
+    min = 0
+  Math.round Math.random() * (max - min) + min
+

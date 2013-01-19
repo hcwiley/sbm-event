@@ -1,41 +1,30 @@
 #= require jquery
-#= require jquery.validate
 #= require underscore
 # =require backbone
 #= require bootstrapManifest
-#= require baseClasses
 # =require socket.io
-# =require osc.io
 # =require helpers
-# =require models/entry
-# =require collections/entries
-# =require views/gallery
 
 @a = @a || {}
 
 @a.entries = {}
 
-Array.prototype.remove = (from, to) ->
-  rest = @.slice((to || from) + 1 || @.length)
-  if from < 0
-    @.length = @.length + from
-  else
-    @.length = from
-  return @.push.apply(@, rest)
 
 $(window).ready ->
   # set up the socket.io and OSC
   socket = io.connect() 
+  a.socket = socket
 
   socket.on "connection", (msg) ->
     socket.emit "pageId", a.pageId
     socket.emit "getContent", a.pageId
 
   socket.on "activate", (msg) ->
-    $("#level1").fadeIn()
-    $(".level2").fadeOut()
-    $(".hero").addClass("hidden")
-    $("#home").fadeOut 400
+    setRandomHero()
+    #$("#level1").fadeIn()
+    #$(".level2").fadeOut()
+    #$(".hero").addClass("hidden")
+    #$("#home").fadeOut 400
     #$('#content').show()
 
   socket.on "deactivate", (msg) ->
@@ -57,18 +46,13 @@ $(window).ready ->
           $("#home").append(div)
         setRandomHero()
 
-  random = (min, max) ->
-    if !max
-      max = min
-      min = 0
-    Math.round Math.random() * (max - min) + min
-
   setRandomHero = ->
-    i = random($(".hero").length)
+    i = random($(".hero").length - 1)
     while i == $('.hero:not(.hidden)').index()
-      i = random($(".hero").length)
+      i = random($(".hero").length - 1)
     $(".hero").addClass("hidden")
     $($(".hero")[i]).removeClass("hidden")
+    socket.emit "hero", $($(".hero")[i]).children("img").attr "src"
 
   a.computeTiles = ->
     j = -1
@@ -116,7 +100,7 @@ $(window).ready ->
       $(div).data "x0", x0
       $(div).data "y0", y0
       if x0 + spacingX >= $(window).width() || y0 > 0 || j / cols == 1
-        y = grid[(j%cols)][parseInt( (j + 1) / cols ) - 1].bottom
+        y = grid[(j%cols)][parseInt( (j + 1) / cols ) - 1]?.bottom
         if y > y0
           y0 = y
       if x0 + spacingX >= $(window).width() - 127
@@ -205,12 +189,14 @@ $(window).ready ->
     a.computeTiles()
 
   $("#home").click ->
+    a.socket.emit "click", "#home"
     $('#home').hide()
     $('#level1').fadeIn(500)
     a.animateTiles()
 
   $('.level1').click () ->
     me = @
+    a.socket.emit "click", $(me).index()
     $('#level1').fadeOut 400, () ->
       $(".level2.#{$(me).data('sub')}").fadeIn 400
 
