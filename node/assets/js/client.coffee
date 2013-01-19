@@ -115,7 +115,7 @@ $(window).ready ->
       $(div).data "h0", spacingY
       $(div).data "x0", x0
       $(div).data "y0", y0
-      if x0 + spacingX >= $(window).width() || y0 > 0
+      if x0 + spacingX >= $(window).width() || y0 > 0 || j / cols == 1
         y = grid[(j%cols)][parseInt( (j + 1) / cols ) - 1].bottom
         if y > y0
           y0 = y
@@ -140,7 +140,7 @@ $(window).ready ->
         $(me).animate {
           left: $(me).data("left"),
           top: $(me).data("top")
-        }, 900, ->
+        }, 400, ->
           if $(me).data "tall"
             $(me).children("img").css "width", "auto"
             $(me).children("img").css "height", $(me).height()
