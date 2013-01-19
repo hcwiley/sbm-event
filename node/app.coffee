@@ -60,6 +60,8 @@ entries = {}
 activePages = {}
 socketMap = {}
 content = {}
+heroes = {}
+buckets = {}
 controller = null
 tvSocket = null
 
@@ -152,16 +154,27 @@ io.sockets.on "connection",  (socket) ->
     console.log "youlll get it"
     #socket?.emit "content", JSON.stringify(content)
 
-  socket.on "hero", (src) ->
-    console.log "new hero: #{src}"
-    tvSocket?.emit "hero", {img: src}
+  socket.on "heroes", (data) ->
+    heroes[data.id] = data.heroes
+
+  socket.on "buckets", (data) ->
+    buckets[data.id] = data.buckets
+
+  socket.on "getBuckets", () ->
+    tvSocket?.emit "buckets", buckets
+
+  socket.on "getHeroes", () ->
+    tvSocket?.emit "heroes", heroes
+
+  socket.on "hero", (data) ->
+    tvSocket?.emit "hero", data
 
   socket.on "clickedPage", (id) ->
     console.log activePages[id]
     activatePage id
 
-  socket.on "click", (div) ->
-    tvSocket?.emit "clicked", div
+  socket.on "click", (data) ->
+    tvSocket?.emit "clicked", data
 
   activatePage = (id) ->
     socketMap[id].emit "activate", "foo"

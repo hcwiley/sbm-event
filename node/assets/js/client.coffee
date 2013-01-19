@@ -28,10 +28,9 @@ $(window).ready ->
     #$('#content').show()
 
   socket.on "deactivate", (msg) ->
-    setRandomHero()
+    #setRandomHero()
     $("#home").fadeIn 400
-    $("#level1").fadeIn()
-    $(".level2").fadeOut()
+    $("#level1").fadeOut()
     #$('#content').hide()
 
   socket.on "content", (content) ->
@@ -44,6 +43,10 @@ $(window).ready ->
           div = $(_.template($('#hero-template').html(), level1))
           $(div).addClass("hidden")
           $("#home").append(div)
+        socket.emit "heroes", {
+          id: a.pageId,
+          heroes: $('#home').html()
+        }
         setRandomHero()
 
   setRandomHero = ->
@@ -52,7 +55,7 @@ $(window).ready ->
       i = random($(".hero").length - 1)
     $(".hero").addClass("hidden")
     $($(".hero")[i]).removeClass("hidden")
-    socket.emit "hero", $($(".hero")[i]).children("img").attr "src"
+    socket.emit "hero", {id: a.pageId, i:i }
 
   a.computeTiles = ->
     j = -1
@@ -84,8 +87,8 @@ $(window).ready ->
       $(div).width spacingX
       $(div).height spacingY
       spacingY = $(div).height()
-      $(div).data "left", x0
-      $(div).data "top", y0
+      $(div).attr "left", x0
+      $(div).attr "top", y0
       #console.log div
       #console.log "#{j} --> #{j%cols}, #{parseInt(j/cols)}"
       grid[j % cols][parseInt( j / cols )] = {
@@ -95,10 +98,10 @@ $(window).ready ->
         y: y0,
         bottom: y0 + $(div).height()
       }
-      $(div).data "w0", spacingX
-      $(div).data "h0", spacingY
-      $(div).data "x0", x0
-      $(div).data "y0", y0
+      $(div).attr "w0", spacingX
+      $(div).attr "h0", spacingY
+      $(div).attr "x0", x0
+      $(div).attr "y0", y0
       if x0 + spacingX >= $(window).width() || y0 > 0 || j / cols == 1
         y = grid[(j%cols)][parseInt( (j + 1) / cols ) - 1]?.bottom
         if y > y0
@@ -108,88 +111,32 @@ $(window).ready ->
       else
         x0 += $(div).width()
       if spacingY < spacingX
-        $(div).data "tall", false
+        $(div).attr "tall", false
         $(div).children("img").css "width", "100%"
         $(div).children("img").css "height", "auto"
       else
-        $(div).data "tall", true
+        $(div).attr "tall", true
         $(div).children("img").css "width", "auto"
         $(div).children("img").css "height", "100%"
+    socket.emit "buckets", {
+      id: a.pageId,
+      buckets: $('#level1').html()
+    }
     grid
-
-  a.animateTiles = ->
-    $(".level1").each ->
-      me = @
-      setTimeout ->
-        $(me).animate {
-          left: $(me).data("left"),
-          top: $(me).data("top")
-        }, 400, ->
-          if $(me).data "tall"
-            $(me).children("img").css "width", "auto"
-            $(me).children("img").css "height", $(me).height()
-          else
-            $(me).children("img").css "width", $(me).width()
-            $(me).children("img").css "height", "auto"
-          $(me).css "overflow", "hidden"
-      , $(me).index() * 100
-        
-  a.resetTiles= ->
-    $(".level1").each ->
-      me = @
-      $(me).animate {
-        left: -1000
-        top: -1000
-      }, 900
 
   doBucket = (json, i) ->
     for j, level1 of json
       #console.log "#{j} -> "
       div = $(_.template($('#square-template').html(), level1))
       $('#level1').append(div)
-      aTime = 400
       $(div).attr "id", "#{i}-#{j}"
       $(div).click ->
-        me = @
-        if a.open
-          a.open = false
-          $(me).animate {
-            left: $(me).data("x0"),
-            top: $(me).data("y0"),
-            width: $(me).data("w0"),
-            height: $(me).data("h0"),
-            "z-index": 1,
-          }, aTime, ->
-            if $(me).data "tall"
-              $(me).children("img").css "width", "auto"
-              $(me).children("img").css "height", "100%"
-            else
-              $(me).children("img").css "width", "100%"
-              $(me).children("img").css "height", "auto"
-            $(me).css "overflow", "hidden"
-          #setTimeout ->
-            #$('.level1').fadeIn(aTime)
-          #, aTime
-
-        else
-          a.open = true
-          #$('.level1').not(me).hide()
-          $(me).css "z-index", 100
-          #$('#level1').animate {
-            #scrollTop: 0+"px"
-          #}, 300, ->
-          $(me).animate {
-            top: $('#level1').scrollTop(),
-            left: 0,
-            width: $(window).width(),
-            height: $(window).height(),
-          }, 400
-          $(me).children('img').width($(window).width())
-          $(me).children('img').height($(window).height())
+        socket.emit "click", { id: a.pageId, div: $(@).index() }
+        a.handleBucketClick(@)
     a.computeTiles()
 
   $("#home").click ->
-    a.socket.emit "click", "#home"
+    a.socket.emit "click", { id: a.pageId, div: "#home" }
     $('#home').hide()
     $('#level1').fadeIn(500)
     a.animateTiles()
@@ -198,5 +145,5 @@ $(window).ready ->
     me = @
     a.socket.emit "click", $(me).index()
     $('#level1').fadeOut 400, () ->
-      $(".level2.#{$(me).data('sub')}").fadeIn 400
+      $(".level2.#{$(me).attr ('sub')}").fadeIn 400
 

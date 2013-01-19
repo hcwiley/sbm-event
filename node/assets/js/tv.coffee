@@ -15,18 +15,40 @@ $(window).ready ->
 
   socket.on "connection", (msg) ->
     socket.emit "pageId", a.pageId
+    socket.emit "getHeroes", ""
+    socket.emit "getBuckets", ""
 
   socket.on "active", (id) ->
     console.log "active: #{id}"
 
-  socket.on "clicked", (div) ->
-    if div == "#home"
-      console.log "home home on tha range"
+  socket.on "clicked", (data) ->
+    if data.div == "#home"
+      $('#home').hide()
+      $("#level1 > div:not(##{data.id})").addClass "hidden"
+      $('#level1').fadeIn(500)
+      a.animateTiles("#{data.id}")
+    else
+      a.handleBucketClick $("#level1 ##{data.id} .level1")[data.div]
 
-  socket.on "hero", (div) ->
-    console.log "hero #{div}"
-    div = $(_.template($('#hero-template').html(), div))
-    $("#home").html div
+  socket.on "hero", (data) ->
+    $("#home").fadeIn 400
+    $("#level1").fadeOut()
+    $('.hero').addClass "hidden"
+    $($("##{data.id} .hero")[data.i]).removeClass "hidden"
+
+  socket.on "heroes", (data) ->
+    for id, html of data
+      $("#home #{id}")?.remove()
+      heroes = $("<div id='#{id}'></div>")
+      $(heroes).append "#{html}"
+      $("#home").append heroes
+
+  socket.on "buckets", (data) ->
+    for id, html of data
+      $("#level1 #{id}")?.remove()
+      buckets = $("<div id='#{id}'></div>")
+      $(buckets).append "#{html}"
+      $("#level1").append buckets
 
   socket.on "content", (content) ->
     for i, json of content

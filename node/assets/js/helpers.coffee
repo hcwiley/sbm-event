@@ -1,3 +1,6 @@
+
+@a = @a || {}
+
 @map = (value, fromMin, fromMax, toMin, toMax) ->
   norm = undefined
   value = parseInt(value)
@@ -22,3 +25,73 @@ Array.prototype.remove = (from, to) ->
     min = 0
   Math.round Math.random() * (max - min) + min
 
+a.animateTiles = (id)  ->
+  if id
+    div = $("#level1 ##{id} .level1")
+  else
+    div = $('.level1')
+  $(div).each ->
+    me = @
+    setTimeout ->
+      $(me).animate {
+        left: $(me).attr("left"),
+        top: $(me).attr("top")
+      }, 400, ->
+        if $(me).attr "tall"
+          $(me).children("img").css "width", "auto"
+          $(me).children("img").css "height", $(me).height()
+        else
+          $(me).children("img").css "width", $(me).width()
+          $(me).children("img").css "height", "auto"
+        $(me).css "overflow", "hidden"
+    , $(me).index() * 100
+      
+a.resetTiles= (id) ->
+  if id
+    div = $("#level1 #{id} .level1")
+  else
+    div = $('.level1')
+  $(div).each ->
+    me = @
+    $(me).animate {
+      left: -1000
+      top: -1000
+    }, 900
+
+a.handleBucketClick = (me) ->
+  aTime = 400
+  if a.open
+    a.open = false
+    $(me).animate {
+      left: $(me).attr("x0"),
+      top: $(me).attr("y0"),
+      width: $(me).attr("w0"),
+      height: $(me).attr("h0"),
+      "z-index": 1,
+    }, aTime, ->
+      if $(me).data "tall"
+        $(me).children("img").css "width", "auto"
+        $(me).children("img").css "height", "100%"
+      else
+        $(me).children("img").css "width", "100%"
+        $(me).children("img").css "height", "auto"
+      $(me).css "overflow", "hidden"
+    #setTimeout ->
+      #$('.level1').fadeIn(aTime)
+    #, aTime
+
+  else
+    a.open = true
+    #$('.level1').not(me).hide()
+    $(me).css "z-index", 100
+    #$('#level1').animate {
+      #scrollTop: 0+"px"
+    #}, 300, ->
+    $(me).animate {
+      top: $('#level1').scrollTop(),
+      left: 0,
+      width: $(window).width(),
+      height: $(window).height(),
+    }, 400
+    $(me).children('img').width($(window).width())
+    $(me).children('img').height($(window).height())

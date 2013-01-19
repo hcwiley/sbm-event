@@ -1,0 +1,21 @@
+extends layout
+
+block content
+  #home
+  #level1
+
+  :coffeescript
+    @a = @a || {}
+    @a.pageId = '#{pageId}'
+
+  script(type='javascript/template', id="square-template")
+    <div class="level1">
+    <img src="<%= img %>" />
+    </div>
+  script(type='javascript/template', id="hero-template")
+    <div class="hero">
+    <img src="<%= img %>" />
+    </div>
+
+  != js('tv')
+
