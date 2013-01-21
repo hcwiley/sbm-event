@@ -347,6 +347,8 @@ int main( int argc, const char** argv )
       // Print number of found contours.
       std::cout << "Found " << contours.size() << " contours." << std::endl;
 
+      approxPolyDP(contours, contours, .5, true)
+
       /// Draw contours
       for( int i = 0; i< contours.size(); i++ )
       {
