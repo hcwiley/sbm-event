@@ -197,6 +197,8 @@ int main( int argc, const char** argv )
   float			angle	= 0.0;
   cv::Scalar lowerThresh = cv::Scalar(0,0,0);
   cv::Scalar upperThresh = cv::Scalar(50,50,50);
+  cv::Moments momentsTemplate = 0;
+  cv::Moments momentsLive = 0;
 
   bool run = true;
 
@@ -283,7 +285,7 @@ int main( int argc, const char** argv )
         flip( frame, frameCopy, 0 );
 
       //cvtColor (frame, edgesMat, CV_BGR2GRAY );
-      //GaussianBlur(edgesMat, edgesMat, Size(7,7), 1.5, 1.5);
+      GaussianBlur(frame, frame, Size(7,7), 1.5, 1.5);
       //Canny(edgesMat, edgesMat, 0, 30, 3);
       //
 
@@ -297,6 +299,7 @@ int main( int argc, const char** argv )
       if(templateMat.empty() ){
         templateMat = grayMat.clone();
         *templateImg = templateMat;
+        momentsTemplate = cvMoments(templateMat, 0);
       }
 
       //*edges = edgesMat;
@@ -316,6 +319,7 @@ int main( int argc, const char** argv )
             printf("capture new template image\n");
             templateMat = grayMat.clone();
             *templateImg = templateMat;
+            momentsTemplate = cvMoments(templateMat, 0);
             break;
           case UP_KEY:
             upperThresh = cv::Scalar(upperThresh.val[0] + 5, upperThresh.val[1] + 5, upperThresh.val[2] + 5);
@@ -344,7 +348,9 @@ int main( int argc, const char** argv )
 
       *difference = differenceMat;
 
-      update_mhi(differenceMat, img, 30);
+      momentsLive = cvMoments(differenceMat,0);
+
+      //update_mhi(differenceMat, img, 30);
 
       cvShowImage( "live", img );
       cvShowImage( "gray", gray );
