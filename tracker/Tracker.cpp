@@ -1,15 +1,14 @@
-#include "opencv2/objdetect/objdetect.hpp"
 #include "opencv2/video/tracking.hpp"
 #include "opencv2/highgui/highgui.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
 
 
 #include <time.h>
-//#include <ctype.h>
+#include <ctype.h>
 #include <iostream>
-#include <stdlib.h>
+//#include <stdlib.h>
 #include <stdio.h>
-#include <cstdio>
+//#include <cstdio>
 //#include <cmath>
 
 
@@ -54,8 +53,11 @@ CvMemStorage* storage = 0; // temporary storage
 //  img - input video frame
 //  dst - resultant motion picture
 //  args - optional parameters
-static void  update_mhi( IplImage* img, IplImage* dst, int diff_threshold )
+static void  update_mhi( cv::Mat imgMat, IplImage * dst, int diff_threshold )
 {
+    IplImage * img = cvCreateImage ( cvSize ( width, height ), IPL_DEPTH_8U, 1 );
+    *img = imgMat;
+
     double timestamp = (double)clock()/CLOCKS_PER_SEC; // get current time in seconds
     CvSize size = cvSize(img->width,img->height); // get current frame size
     int i, idx1 = last, idx2;
@@ -93,7 +95,7 @@ static void  update_mhi( IplImage* img, IplImage* dst, int diff_threshold )
         mask = cvCreateImage( size, IPL_DEPTH_8U, 1 );
     }
 
-    cvCvtColor( img, buf[last], CV_BGR2GRAY ); // convert frame to grayscale
+    //cv::cvtColor( imgMat, buf[last], CV_BGR2GRAY ); // convert frame to grayscale
 
     idx2 = (last + 1) % N; // index of (last - (N-1))th frame
     last = idx2;
@@ -101,7 +103,9 @@ static void  update_mhi( IplImage* img, IplImage* dst, int diff_threshold )
     silh = buf[idx2];
     cvAbsDiff( buf[idx1], buf[idx2], silh ); // get difference between frames
 
-    cvThreshold( silh, silh, diff_threshold, 1, CV_THRESH_BINARY ); // and threshold it
+    cv::Mat silhMat = imgMat.clone();
+    cv::threshold( silhMat, silhMat, diff_threshold, 1, CV_THRESH_BINARY ); // and threshold it
+    *silh = silhMat;
     cvUpdateMotionHistory( silh, mhi, timestamp, MHI_DURATION ); // update MHI
 
     // convert MHI to blue 8u image
@@ -224,7 +228,7 @@ int main( int argc, const char** argv )
     exit(-1);
   }
 
-  difference = cvCreateImage ( cvSize ( width, height ), IPL_DEPTH_8U, 1 );
+  difference = cvCreateImage ( cvSize ( width, height ), IPL_DEPTH_8U, 3 );
   if ( !difference ) {
     printf ( "failed to create difference image!!!\n" );
     exit(-1);
@@ -311,7 +315,7 @@ int main( int argc, const char** argv )
 
       *difference = differenceMat;
 
-      update_mhi(difference, difference, 30);
+      update_mhi(differenceMat, img, 30);
 
       cvShowImage( "live", img );
       cvShowImage( "gray", gray );
