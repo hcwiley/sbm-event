@@ -1,6 +1,7 @@
 #include "opencv2/video/tracking.hpp"
 #include "opencv2/highgui/highgui.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
+#include "opencv2/core/core.hpp"
 
 
 #include <time.h>
@@ -15,6 +16,10 @@
 #define ESC_KEY 27
 #define T_KEY 116
 #define SAPCE_BAR 32
+#define UP_KEY 63232
+#define LEFT_KEY 63234
+#define DOWN_KEY 63233
+#define RIGHT_KEY 63235
 
 
 using namespace std;
@@ -190,6 +195,8 @@ int main( int argc, const char** argv )
   IplImage	*	orient = NULL;
   IplImage	*	mhi= NULL;
   float			angle	= 0.0;
+  cv::Scalar lowerThresh = cv::Scalar(0,0,0);
+  cv::Scalar upperThresh = cv::Scalar(50,50,50);
 
   bool run = true;
 
@@ -209,6 +216,11 @@ int main( int argc, const char** argv )
   //cvNamedWindow( "edges", 1 );
   cvNamedWindow( "difference", 1 );
   cvNamedWindow( "template", 1 );
+
+  cv::moveWindow("live", 50, 50);
+  cv::moveWindow("template", 700, 50);
+  cv::moveWindow("difference", 700, 500);
+  cv::moveWindow("gray", 50, 500);
 
   gray = cvCreateImage ( cvSize ( width, height ), IPL_DEPTH_8U, 1 );
   if ( !gray ) {
@@ -270,8 +282,6 @@ int main( int argc, const char** argv )
       else
         flip( frame, frameCopy, 0 );
 
-      cvtColor (frame, grayMat, CV_BGR2GRAY );
-
       //cvtColor (frame, edgesMat, CV_BGR2GRAY );
       //GaussianBlur(edgesMat, edgesMat, Size(7,7), 1.5, 1.5);
       //Canny(edgesMat, edgesMat, 0, 30, 3);
@@ -279,6 +289,9 @@ int main( int argc, const char** argv )
 
       //cv::Mat differenceMat(frame);
 
+      cv::inRange(frame, lowerThresh, upperThresh, grayMat);
+
+      //cvtColor (frame, grayMat, CV_BGR2GRAY );
 
       *gray = grayMat;
       if(templateMat.empty() ){
@@ -303,6 +316,22 @@ int main( int argc, const char** argv )
             printf("capture new template image\n");
             templateMat = grayMat.clone();
             *templateImg = templateMat;
+            break;
+          case UP_KEY:
+            upperThresh = cv::Scalar(upperThresh.val[0] + 5, upperThresh.val[1] + 5, upperThresh.val[2] + 5);
+            printf("upperThresh: %f, %f, %f\n", upperThresh.val[0], upperThresh.val[1], upperThresh.val[2]);
+            break;
+          case DOWN_KEY:
+            upperThresh = cv::Scalar(upperThresh.val[0] - 5, upperThresh.val[1] - 5, upperThresh.val[2] - 5);
+            printf("upperThresh: %f, %f, %f\n", upperThresh.val[0], upperThresh.val[1], upperThresh.val[2]);
+            break;
+          case LEFT_KEY:
+            lowerThresh = cv::Scalar(lowerThresh.val[0] + 5, lowerThresh.val[1] + 5, lowerThresh.val[2] + 5);
+            printf("lowerThresh: %f, %f, %f\n", lowerThresh.val[0], lowerThresh.val[1], lowerThresh.val[2]);
+            break;
+          case RIGHT_KEY:
+            lowerThresh = cv::Scalar(lowerThresh.val[0] - 5, lowerThresh.val[1] - 5, lowerThresh.val[2] - 5);
+            printf("lowerThresh: %f, %f, %f\n", lowerThresh.val[0], lowerThresh.val[1], lowerThresh.val[2]);
             break;
           default:
             printf("%d key hit\n", key);
