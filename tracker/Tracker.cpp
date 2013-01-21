@@ -1,13 +1,16 @@
 #include "opencv2/objdetect/objdetect.hpp"
+#include "opencv2/video/tracking.hpp"
 #include "opencv2/highgui/highgui.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
 
 
+#include <time.h>
+//#include <ctype.h>
 #include <iostream>
 #include <stdlib.h>
 #include <stdio.h>
 #include <cstdio>
-#include <cmath>
+//#include <cmath>
 
 
 #define ESC_KEY 27
@@ -16,7 +19,7 @@
 
 
 using namespace std;
-using namespace cv;
+//using namespace cv;
 
 // Forwards
 //void Filter ( IplImage * img );
@@ -28,16 +31,24 @@ int		width = 1;
 int		height = 1;
 CvFont	_idFont;
 
+// various tracking parameters (in seconds)
+const double MHI_DURATION = 1;
+const double MAX_TIME_DELTA = 0.5;
+const double MIN_TIME_DELTA = 0.05;
+
 int main( int argc, const char** argv )
 {
   CvCapture* capture = 0;
-  Mat frame, frameCopy, image, grayMat, edgesMat;
-  Mat templateMat;
+  cv::Mat frame, frameCopy, image, grayMat, differenceMat;//edgesMat;
+  cv::Mat templateMat, mhiMat;
 
   IplImage	*	img		= NULL;
   IplImage	*	gray	= NULL;
-  IplImage	*	edges	= NULL;
+  //IplImage	*	edges	= NULL;
+  IplImage	*	difference = NULL;
   IplImage	*	templateImg = NULL;
+  IplImage	*	orient = NULL;
+  IplImage	*	mhi= NULL;
   float			angle	= 0.0;
 
   bool run = true;
@@ -53,22 +64,23 @@ int main( int argc, const char** argv )
   width	= (int) cvGetCaptureProperty ( capture, CV_CAP_PROP_FRAME_WIDTH );
   height	= (int) cvGetCaptureProperty ( capture, CV_CAP_PROP_FRAME_HEIGHT );
 
-  cvNamedWindow( "result", 1 );
+  cvNamedWindow( "live", 1 );
   cvNamedWindow( "gray", 1 );
-  cvNamedWindow( "edges", 1 );
+  //cvNamedWindow( "edges", 1 );
+  cvNamedWindow( "difference", 1 );
   cvNamedWindow( "template", 1 );
 
   gray = cvCreateImage ( cvSize ( width, height ), IPL_DEPTH_8U, 1 );
   if ( !gray ) {
-    printf ( "Failed to create gray image!!!\n" );
+    printf ( "failed to create gray image!!!\n" );
     exit(-1);
   }
 
-  edges = cvCreateImage ( cvSize ( width, height ), IPL_DEPTH_8U, 1 );
-  if ( !edges ) {
-    printf ( "Failed to create edges image!!!\n" );
-    exit(-1);
-  }
+  //edges = cvCreateImage ( cvSize ( width, height ), IPL_DEPTH_8U, 1 );
+  //if ( !edges ) {
+    //printf ( "Failed to create edges image!!!\n" );
+    //exit(-1);
+  //}
 
   templateImg = cvCreateImage ( cvSize ( width, height ), IPL_DEPTH_8U, 1 );
   if ( !templateImg ) {
@@ -76,6 +88,23 @@ int main( int argc, const char** argv )
     exit(-1);
   }
 
+  difference = cvCreateImage ( cvSize ( width, height ), IPL_DEPTH_8U, 1 );
+  if ( !difference ) {
+    printf ( "failed to create difference image!!!\n" );
+    exit(-1);
+  }
+
+  mhi = cvCreateImage ( cvSize ( width, height ), IPL_DEPTH_32F, 1 );
+  if ( !mhi ) {
+    printf ( "failed to create mhi image!!!\n" );
+    exit(-1);
+  }
+
+  orient = cvCreateImage ( cvSize ( width, height ), IPL_DEPTH_32F, 1 );
+  if ( !orient ) {
+    printf ( "failed to create orient image!!!\n" );
+    exit(-1);
+  }
 
   //
   // Set Region of Interest to the whole image
@@ -88,6 +117,9 @@ int main( int argc, const char** argv )
     cout << "In capture ..." << endl;
     while(run)
     {
+
+      double timestamp = (double)clock()/CLOCKS_PER_SEC; // get current time in seconds
+
       img = cvQueryFrame( capture );
       frame = img;
 
@@ -100,9 +132,12 @@ int main( int argc, const char** argv )
 
       cvtColor (frame, grayMat, CV_BGR2GRAY );
 
-      cvtColor (frame, edgesMat, CV_BGR2GRAY );
-      GaussianBlur(edgesMat, edgesMat, Size(7,7), 1.5, 1.5);
-      Canny(edgesMat, edgesMat, 0, 30, 3);
+      //cvtColor (frame, edgesMat, CV_BGR2GRAY );
+      //GaussianBlur(edgesMat, edgesMat, Size(7,7), 1.5, 1.5);
+      //Canny(edgesMat, edgesMat, 0, 30, 3);
+      //
+
+      //cv::Mat differenceMat(frame);
 
 
       *gray = grayMat;
@@ -111,14 +146,14 @@ int main( int argc, const char** argv )
         *templateImg = templateMat;
       }
 
-      *edges = edgesMat;
+      //*edges = edgesMat;
 
       // Do pre-filtering; Get binarized image with blobs
       //Filter ( gray );
 
 
 
-      int key = waitKey( 10 );
+      int key = cv::waitKey( 10 );
       if (key >= 0){
         switch ( key ) {
           case ESC_KEY:
@@ -135,22 +170,45 @@ int main( int argc, const char** argv )
         }
       }
 
-      cvShowImage( "result", img );
+
+      cv::absdiff( grayMat, templateMat, differenceMat); // get difference between frames
+
+      double diff_threshold = 30.0;
+
+      threshold( differenceMat, differenceMat, diff_threshold, 1, CV_THRESH_BINARY ); // and threshold it
+      *difference = differenceMat;
+
+      cvZero( mhi ); // clear MHI at the beginning
+
+      cvUpdateMotionHistory( difference, mhi, timestamp, MHI_DURATION); // update differenceMat
+
+      cvZero( difference );
+      cvZero( orient );
+      // convert MHI to blue 8u image
+      cvCvtScale( mhi, difference, 255./MHI_DURATION,
+                  (MHI_DURATION - timestamp)*255./MHI_DURATION );
+
+
+
+      cvShowImage( "live", img );
       cvShowImage( "gray", gray );
-      cvShowImage( "edges", edges );
+      cvShowImage( "difference", difference );
+      //cvShowImage( "edges", edges );
       cvShowImage( "template", templateImg);
 
     }
   }
 
   cvReleaseCapture( &capture );
-  cvReleaseImage ( &img );
-  cvReleaseImage ( &edges);
-  cvReleaseImage ( &templateImg);
-  cvReleaseImage ( &gray );
-  cvDestroyWindow( "result" );
+  //cvReleaseImage ( &img );
+  //cvReleaseImage ( &edges);
+  //cvReleaseImage ( &templateImg);
+  //cvReleaseImage ( &difference);
+  //cvReleaseImage ( &gray );
+  cvDestroyWindow( "live" );
+  cvDestroyWindow( "difference" );
   cvDestroyWindow( "gray" );
-  cvDestroyWindow( "edges" );
+  //cvDestroyWindow( "edges" );
   cvDestroyWindow( "template" );
 
   return 0;
