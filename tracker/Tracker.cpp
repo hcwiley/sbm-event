@@ -58,6 +58,8 @@ CvMemStorage* storage = 0; // temporary storage
 
 typedef cv::vector<cv::vector<cv::Point> > TContours;
 
+TContours templateContour;
+
 // parameters:
 //  img - input video frame
 //  dst - resultant motion picture
@@ -209,13 +211,22 @@ void newTemplateImage(cv::Mat * templateMat, cv::Mat * grayMat){
   cv::findContours( canny_output, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, cv::Point(0, 0) );
 
   // Print number of found contours.
-  std::cout << "Found " << contours.size() << " contours." << std::endl;
+  //std::cout << "Found " << contours.size() << " contours." << std::endl;
 
   /// Draw contours
+  int first = contours.size() + 1;
   for( int i = 0; i< contours.size(); i++ )
   {
-    cv::Scalar color = cv::Scalar( rng.uniform(0, 255), rng.uniform(0,255), rng.uniform(0,255) );
-    drawContours( *templateMat, contours, i, color, 2, 8, hierarchy, 0, cv::Point() );
+    if( contourArea(contours[i]) > 10){
+      if ( first > i){
+        templateContour.clear();
+        templateContour.push_back(contours[i]);
+        first = i;
+      }
+      templateContour[0].insert(templateContour[0].end(), contours[i].begin(), contours[i].end());
+      cv::Scalar color = cv::Scalar( 255,0,0);
+      drawContours( *templateMat, contours, i, color, 2, 8, hierarchy, 0, cv::Point() );
+    }
   }
   //momentsTemplate = CvMoments(templateMat, 0);
 }
@@ -237,6 +248,12 @@ int main( int argc, const char** argv )
   cv::Scalar upperThresh = cv::Scalar(45,45,45);
   //cv::Moments momentsTemplate = 0;
   //cv::Moments momentsLive = 0;
+  //
+  cv::vector<cv::Point> foo;
+  foo.push_back(cv::Point());
+  templateContour.push_back(foo);
+
+  //templateContour = cv::vector<cv::vector<cv::Point> >;
 
   bool run = true;
 
@@ -331,30 +348,33 @@ int main( int argc, const char** argv )
       //cvtColor (frame, edgesMat, CV_BGR2GRAY );
       //GaussianBlur(grayMat, grayMat, cv::Size(7,7), 1.5, 1.5);
       //Canny(grayMat, grayMat, 0, 30, 3);
-      //GaussianBlur(frame, frame, cv::Size(7,7), 1.5, 1.5);
+      GaussianBlur(frame, frame, cv::Size(7,7), 1.5, 1.5);
 
-      cvtColor (frame, frame, CV_BGR2GRAY );
+      //cvtColor (frame, frame, CV_BGR2GRAY );
 
       TContours contours;
       std::vector<cv::Vec4i> hierarchy;
 
       cv::Mat canny_output;//  = cv::Mat::zeros( frame.size(), CV_8UC3 );
 
-      Canny(grayMat, canny_output, 100, 300, 3);
+      Canny(grayMat, canny_output, 10, 50, 3);
 
       cv::findContours( canny_output, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, cv::Point(0, 0) );
 
       // Print number of found contours.
-      std::cout << "Found " << contours.size() << " contours." << std::endl;
+      //std::cout << "Found " << contours.size() << " contours." << std::endl;
 
-      approxPolyDP(contours, contours, .5, true)
 
       /// Draw contours
       for( int i = 0; i< contours.size(); i++ )
       {
-        cv::Scalar color = cv::Scalar( rng.uniform(0, 255), rng.uniform(0,255), rng.uniform(0,255) );
-        drawContours( frame, contours, i, color, 2, 8, hierarchy, 0, cv::Point() );
+        if( contourArea(contours[i]) > 50){
+          cv::Scalar color = cv::Scalar(255,0,0);
+          drawContours( frame, contours, i, color, 2, 8, hierarchy, 0, cv::Point() );
+        }
       }
+
+
 
       //cvtColor (frame, grayMat, CV_BGR2GRAY );
 
@@ -363,6 +383,10 @@ int main( int argc, const char** argv )
         //templateMat = grayMat.clone();
         newTemplateImage(&templateMat, &grayMat);
       }
+
+      if(!templateContour.empty())
+        drawContours( frame, templateContour, 0, cv::Scalar(0,255,0), 2, 8, hierarchy, 0, cv::Point() );
+
 
       //*edges = edgesMat;
 
@@ -378,19 +402,19 @@ int main( int argc, const char** argv )
             newTemplateImage(&templateMat, &grayMat);
             break;
           case UP_KEY:
-            upperThresh = cv::Scalar(upperThresh.val[0] + 5, upperThresh.val[1] + 5, upperThresh.val[2] + 5);
+            upperThresh = cv::Scalar(upperThresh.val[0] + 1, upperThresh.val[1] + 1, upperThresh.val[2] + 1);
             printf("upperThresh: %f, %f, %f\n", upperThresh.val[0], upperThresh.val[1], upperThresh.val[2]);
             break;
           case DOWN_KEY:
-            upperThresh = cv::Scalar(upperThresh.val[0] - 5, upperThresh.val[1] - 5, upperThresh.val[2] - 5);
+            upperThresh = cv::Scalar(upperThresh.val[0] - 1, upperThresh.val[1] - 1, upperThresh.val[2] - 1);
             printf("upperThresh: %f, %f, %f\n", upperThresh.val[0], upperThresh.val[1], upperThresh.val[2]);
             break;
           case LEFT_KEY:
-            lowerThresh = cv::Scalar(lowerThresh.val[0] + 5, lowerThresh.val[1] + 5, lowerThresh.val[2] + 5);
+            lowerThresh = cv::Scalar(lowerThresh.val[0] + 1, lowerThresh.val[1] + 1, lowerThresh.val[2] + 1);
             printf("lowerThresh: %f, %f, %f\n", lowerThresh.val[0], lowerThresh.val[1], lowerThresh.val[2]);
             break;
           case RIGHT_KEY:
-            lowerThresh = cv::Scalar(lowerThresh.val[0] - 5, lowerThresh.val[1] - 5, lowerThresh.val[2] - 5);
+            lowerThresh = cv::Scalar(lowerThresh.val[0] - 1, lowerThresh.val[1] - 1, lowerThresh.val[2] - 1);
             printf("lowerThresh: %f, %f, %f\n", lowerThresh.val[0], lowerThresh.val[1], lowerThresh.val[2]);
             break;
           default:
