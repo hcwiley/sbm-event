@@ -20,7 +20,11 @@ $(window).ready ->
     socket.emit "getContent", a.pageId
 
   socket.on "activate", (msg) ->
+    a.resetTiles()
     setRandomHero()
+    $("#home").fadeIn 400
+    $("#level1").fadeOut()
+    a.isActive = true;
     #$("#level1").fadeIn()
     #$(".level2").fadeOut()
     #$(".hero").addClass("hidden")
@@ -29,6 +33,7 @@ $(window).ready ->
 
   socket.on "deactivate", (msg) ->
     #setRandomHero()
+    a.isActive = false;
     $("#home").fadeIn 400
     $("#level1").fadeOut()
     #$('#content').hide()
@@ -136,10 +141,14 @@ $(window).ready ->
     a.computeTiles()
 
   $("#home").click ->
-    a.socket.emit "click", { id: a.pageId, div: "#home" }
-    $('#home').hide()
-    $('#level1').fadeIn(500)
-    a.animateTiles()
+    if a.isActive
+      a.socket.emit "click", { id: a.pageId, div: "#home" }
+      $('#home').hide()
+      $('#level1').fadeIn(500)
+      a.animateTiles()
+
+  $("#level1").on "scroll", (e)->
+    a.socket.emit "scroll", "#{$(@).scrollTop()}"
 
   $('.level1').click () ->
     me = @

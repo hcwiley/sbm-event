@@ -21,10 +21,17 @@ $(window).ready ->
   socket.on "active", (id) ->
     console.log "active: #{id}"
 
+  socket.on "scrolled", (top) ->
+    $('#level1').stop().animate {
+      scrollTop: "#{top}px"
+    }, 200
+
   socket.on "clicked", (data) ->
     if data.div == "#home"
+      a.resetTiles()
       $('#home').hide()
       $("#level1 > div:not(##{data.id})").addClass "hidden"
+      $("#level1 ##{data.id}").removeClass "hidden"
       $('#level1').fadeIn(500)
       a.animateTiles("#{data.id}")
     else

@@ -56,7 +56,7 @@ a.resetTiles= (id) ->
     $(me).animate {
       left: -1000
       top: -1000
-    }, 900
+    }, 100
 
 a.handleBucketClick = (me) ->
   aTime = 400

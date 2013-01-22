@@ -176,6 +176,10 @@ io.sockets.on "connection",  (socket) ->
   socket.on "click", (data) ->
     tvSocket?.emit "clicked", data
 
+  socket.on "scroll", (data) ->
+    tvSocket?.emit "scrolled", data
+
+
   activatePage = (id) ->
     socketMap[id].emit "activate", "foo"
     tvSocket.emit "active", id
