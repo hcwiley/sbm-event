@@ -28,7 +28,7 @@ $(window).ready ->
   socket.on "scrolled", (top) ->
     $('#level1').stop().animate {
       scrollTop: "#{top}px"
-    }, 50
+    }, 10
 
   socket.on "clicked", (data) ->
     if data.div == "#home"

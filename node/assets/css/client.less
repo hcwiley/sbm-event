@@ -42,7 +42,7 @@ html, body {
   overflow-y: scroll;
   width: 100%;
   height: 100%;
-  div{
+  > div{
     float: left;
   }
   .level1 {
@@ -51,18 +51,53 @@ html, body {
     height: 200px;
     margin: 10px;
     position: static;
-    img {
-      /*position: absolute;*/
+    background: #000;
+    .img-wrapper {
+      float: none;
+      position: relative;
+      margin: auto;
       /*top: 0px;*/
       /*left: 0px;*/
       height: 100%;
       width: 100%;
+      background: #fff;
       /*width: auto;*/
+      img {
+        width: 100%;
+        height: auto;
+      }
+    }
+    .text{
+      z-index: 110;
+      display: none;
+      /*height: */
+      italic {
+        font-style: italic;
+      }
     }
   }
   .level1.open{
-    position: fixed;
+    position: absolute;
     z-index: 100;
+
+    .img-wrapper {
+      height: 80%;
+      width: 100%;
+      margin: auto;
+      img {
+        height: 100%;
+        width: auto;
+      }
+    }
+
+    .text{
+      position: absolute;
+      bottom: 200px;
+      height: 150px;
+      width: 100%;
+      font-size: 20px;
+      /*height: */
+    }
   }
 }
 

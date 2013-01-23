@@ -84,8 +84,9 @@ doSecondLevel = (first, second, next) ->
   fs.readdir "#{basePath}#{first}/#{second}", (err, files) ->
     files = files.toString().replace(".DS_Store,","").split(',')
     count = 0
+    console.log "files #{files.length}"
     for file in files
-      doFileLevel(first, second, file, count++, (i) ->
+      doFileLevel(first, second, file.toLowerCase(), count++, (i) ->
         if "#{i}" == "#{( files.length - 1 )}"
           next(second)
       )
@@ -100,7 +101,7 @@ doFileLevel = (first, second, file, count, next) ->
       content[first][second][file] = content[first][second][file] || {}
       content[first][second][file].text = "#{lines}"
       next(count)
-  else if file.toLowerCase().match(".jpg") || file.toLowerCase().match(".png")
+  else if file.match(".jpg") || file.match(".png")
     name = file.replace(".jpg","").replace(".png","")
     content[first][second][name] = content[first][second][name] || {}
     #console.log "first: #{first}, second #{second}, file #{name}"
@@ -178,7 +179,7 @@ io.sockets.on "connection",  (socket) ->
     tvSocket?.emit "clicked", data
 
   socket.on "scroll", (data) ->
-    tvSocket?.volatile.emit "scrolled", data
+    tvSocket?.emit "scrolled", data
 
 
   activatePage = (id) ->

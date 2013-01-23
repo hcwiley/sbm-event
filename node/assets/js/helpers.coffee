@@ -68,15 +68,14 @@ a.handleBucketClick = (me) ->
   aTime = 400
   if a.open
     a.open = false
-    $(me).removeClass "open"
     #$(me).css "position", "static"
     $(me).animate {
       left: $(me).attr("x0"),
       top: $(me).attr("y0"),
       width: $(me).attr("w0"),
       height: $(me).attr("h0"),
-      "z-index": 1,
     }, aTime, ->
+      $(me).removeClass "open"
       if $(me).data "tall"
         $(me).children("img").css "width", "auto"
         $(me).children("img").css "height", "100%"
@@ -102,5 +101,5 @@ a.handleBucketClick = (me) ->
       width: $(window).width(),
       height: $(window).height(),
     }, 400
-    $(me).children('img').width($(window).width())
-    $(me).children('img').height($(window).height())
+    $(me).children('.img-wrapper').width($(window).width() * .80)
+    #$(me).children('img').height($(window).height())
