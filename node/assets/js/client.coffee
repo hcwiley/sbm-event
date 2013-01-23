@@ -124,6 +124,7 @@ $(window).ready ->
       $(div).attr "x0", x
       $(div).attr "y0", y
       $(div).attr "hidden", false
+      $(div).css "opacity", 0
 
       #x += ( width / 128 )
       #if x > 7
@@ -159,8 +160,17 @@ $(window).ready ->
 
   $("#home").click ->
     if a.isActive
-      $('#home').fadeOut(400)
-      $('#level1').fadeIn(500)
+      $('#home').fadeOut 100, ->
+        $('#level1').fadeIn()
+        setTimeout ->
+          $(".level1").each ->
+            $me = $(@)
+            setTimeout ->
+              $me.animate {
+                opacity: 1
+              }, 300
+            , $me.index() * 200
+        , 200
       a.socket.emit "click", { id: a.pageId, div: "#home" }
       #a.animateTiles()
 

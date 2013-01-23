@@ -36,6 +36,11 @@ a.animateTiles = (id)  ->
       $(me).addClass "hidden"
     else
       $(me).removeClass "hidden"
+      setTimeout ->
+        $(me).animate {
+          opacity: 1
+        }, 300
+      , $(me).index() * 200
         
       #$(me).animate {
         #left: $(me).attr("left"),
@@ -96,10 +101,12 @@ a.handleBucketClick = (me) ->
       #scrollTop: 0+"px"
     #}, 300, ->
     $(me).animate {
-      top: 0,#$('#level1').scrollTop(),
-      left: 0,
-      width: $(window).width(),
-      height: $(window).height(),
+      top: -10,#$('#level1').scrollTop(),
+      left: -10,
+      width: $(window).width() + 20,
+      height: $(window).height() + 20,
     }, 400
-    $(me).children('.img-wrapper').width($(window).width() * .80)
+    #$img = $(me).find('img')
+    #wrapW = $(window).width()
+    #$img.css("left", ( wrapW / 2 ) - ( $img.width() / 2 )
     #$(me).children('img').height($(window).height())
