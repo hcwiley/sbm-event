@@ -32,36 +32,44 @@ a.animateTiles = (id)  ->
     div = $('.level1')
   $(div).each ->
     me = @
-    setTimeout ->
-      $(me).animate {
-        left: $(me).attr("left"),
-        top: $(me).attr("top")
-      }, 400, ->
-        if $(me).attr "tall"
-          $(me).children("img").css "width", "auto"
-          $(me).children("img").css "height", $(me).height()
-        else
-          $(me).children("img").css "width", $(me).width()
-          $(me).children("img").css "height", "auto"
-        $(me).css "overflow", "hidden"
-    , $(me).index() * 100
+    if $(me).attr "hidden"
+      $(me).addClass "hidden"
+    else
+      $(me).removeClass "hidden"
+        
+      #$(me).animate {
+        #left: $(me).attr("left"),
+        #top: $(me).attr("top")
+      #}, 400, ->
+        #if $(me).attr "tall"
+          #$(me).children("img").css "width", "auto"
+          #$(me).children("img").css "height", $(me).height()
+        #else
+          #$(me).children("img").css "width", $(me).width()
+          #$(me).children("img").css "height", "auto"
+        #$(me).css "overflow", "hidden"
       
 a.resetTiles= (id) ->
   if id
     div = $("#level1 #{id} .level1")
   else
     div = $('.level1')
-  $(div).each ->
-    me = @
-    $(me).animate {
-      left: -1000
-      top: -1000
-    }, 100
+  $(".level1.open").trigger "click"
+  $(div).removeClass "active"
+  $(div).removeClass "hidden"
+  #$(div).each ->
+    #me = @
+    #$(me).animate {
+      #left: -1000
+      #top: -1000
+    #}, 100
 
 a.handleBucketClick = (me) ->
   aTime = 400
   if a.open
     a.open = false
+    $(me).removeClass "open"
+    #$(me).css "position", "static"
     $(me).animate {
       left: $(me).attr("x0"),
       top: $(me).attr("y0"),
@@ -83,12 +91,13 @@ a.handleBucketClick = (me) ->
   else
     a.open = true
     #$('.level1').not(me).hide()
-    $(me).css "z-index", 100
+    #$(me).css("z-index", 100).css "position", "fixed"
+    $(me).addClass "open"
     #$('#level1').animate {
       #scrollTop: 0+"px"
     #}, 300, ->
     $(me).animate {
-      top: $('#level1').scrollTop(),
+      top: 0,#$('#level1').scrollTop(),
       left: 0,
       width: $(window).width(),
       height: $(window).height(),

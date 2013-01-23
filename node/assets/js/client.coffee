@@ -1,4 +1,5 @@
 #= require jquery
+#= require isotope.min.js
 #= require underscore
 # =require backbone
 #= require bootstrapManifest
@@ -21,6 +22,7 @@ $(window).ready ->
 
   socket.on "activate", (msg) ->
     a.resetTiles()
+    a.computeTiles()
     setRandomHero()
     $("#home").fadeIn 400
     $("#level1").fadeOut()
@@ -64,10 +66,14 @@ $(window).ready ->
 
   a.computeTiles = ->
     j = -1
-    widthOpts0 = [128, 128*2, 128*2, 128*3]
-    heightOpts0 = [128, 128*2, 128*2, 128*3]
-    x0 = 0
-    y0 = 0
+    widthOpts0 = [
+      128, 128, 128, 128, 128, 128,
+      256, 256, 256, 256, 256, 256, 256,
+      384, 384
+    ]
+    #heightOpts0 = [128, 128*2, 128*2, 128*3]
+    x = 0
+    y = 0
     cols = 4
     rows = 4
     widthOpts = $(widthOpts0).toArray()
@@ -76,83 +82,95 @@ $(window).ready ->
     while i < cols
       grid[i++] = new Array()
 
-    while ++j < $(".level1").length
-      div = $(".level1")[j]
-      if(j % cols == 0)
-        widthOpts = $(widthOpts0).toArray()
-        heightOpts = $(heightOpts0).toArray()
+    lastWidth = -1
+    divs = $('.level1').toArray()
+    while ++j < widthOpts0.length
+      divI = random(divs.length)
+      div = divs[divI]
+      divs.remove(divI)
+      #$(div).prependTo $("#level1")
+      $(div).addClass("active")
+      $(div).removeClass("hidden")
+      #if(j % cols == 0)
+        #widthOpts = $(widthOpts0).toArray()
+        #heightOpts = $(heightOpts0).toArray()
       i = random(widthOpts.length - 1)
-      spacingX = widthOpts[i]
+      width = widthOpts[i]
+      #if width == 384
+        #if ( y == 0 || y == 3 ) || ( x == 
+          #while width == 384
+            #i = random(widthOpts.length - 1)
+            #width = widthOpts[i]
       widthOpts.remove(i)
-      i = random(heightOpts.length - 1)
-      spacingY = heightOpts[i]
-      heightOpts.remove(i)
-      #spacingY = $(window).height() / ($(".level1").length / cols)
-      #spacingY = $(window).height() / ($(".level1").length / cols)
-      $(div).width spacingX
-      $(div).height spacingY
-      spacingY = $(div).height()
-      $(div).attr "left", x0
-      $(div).attr "top", y0
-      #console.log div
-      #console.log "#{j} --> #{j%cols}, #{parseInt(j/cols)}"
-      grid[j % cols][parseInt( j / cols )] = {
+      #if width == 128
+        #doSmallBlock div, x, y
+      #if width == 256
+        #doMediumBlock div, x, y
+      #if width == 384
+        #doLargeBlock div, x, y
+
+      $(div).width width - 20
+      $(div).height width - 20
+
+      grid[x][y] = {
         width: $(div).width(),
         height: $(div).height(),
-        x: x0,
-        y: y0,
-        bottom: y0 + $(div).height()
+        x: x,
+        y: y,
+        bottom: y + $(div).height()
       }
-      $(div).attr "w0", spacingX
-      $(div).attr "h0", spacingY
-      $(div).attr "x0", x0
-      $(div).attr "y0", y0
-      if x0 + spacingX >= $(window).width() || y0 > 0 || j / cols == 1
-        y = grid[(j%cols)][parseInt( (j + 1) / cols ) - 1]?.bottom
-        if y > y0
-          y0 = y
-      if x0 + spacingX >= $(window).width() - 127
-        x0 = 0
-      else
-        x0 += $(div).width()
-      if spacingY < spacingX
-        $(div).attr "tall", false
-        $(div).children("img").css "width", "100%"
-        $(div).children("img").css "height", "auto"
-      else
-        $(div).attr "tall", true
-        $(div).children("img").css "width", "auto"
-        $(div).children("img").css "height", "100%"
+      $(div).attr "w0", width
+      $(div).attr "h0", width
+      $(div).attr "x0", x
+      $(div).attr "y0", y
+      $(div).attr "hidden", false
+
+      #x += ( width / 128 )
+      #if x > 7
+        #x = 0
+        #y += 1
+
+    $(".level1:not(.active)").each ->
+      #$(@).addClass "hidden"
+      $(@).attr "hidden", true
+
+
     socket.emit "buckets", {
       id: a.pageId,
       buckets: $('#level1').html()
     }
-    grid
+    $("#level1").css("height", "auto")
 
   doBucket = (json, i) ->
     for j, level1 of json
       #console.log "#{j} -> "
       div = $(_.template($('#square-template').html(), level1))
       $('#level1').append(div)
-      $(div).attr "id", "#{i}-#{j}"
+      $(div).attr "id", "#{i}-#{j.toLowerCase().replace(".jpg","")}"
       $(div).click ->
         socket.emit "click", { id: a.pageId, div: $(@).index() }
         a.handleBucketClick(@)
     a.computeTiles()
 
+  $('#level1').isotope
+    itemSelector: '.level1',
+    layoutMode : 'masonry'
+
   $("#home").click ->
     if a.isActive
-      a.socket.emit "click", { id: a.pageId, div: "#home" }
-      $('#home').hide()
+      $('#home').fadeOut(400)
       $('#level1').fadeIn(500)
-      a.animateTiles()
+      a.socket.emit "click", { id: a.pageId, div: "#home" }
+      #a.animateTiles()
 
-  $("#level1").on "scroll", (e)->
+  $(window).scroll ()->
+    #console.log $(@).scrollTop()
     a.socket.emit "scroll", "#{$(@).scrollTop()}"
 
   $('.level1').click () ->
     me = @
     a.socket.emit "click", $(me).index()
     $('#level1').fadeOut 400, () ->
-      $(".level2.#{$(me).attr ('sub')}").fadeIn 400
+      a.handleBucketClick(me)
+      #$(".level2.#{$(me).attr ('sub')}").fadeIn 400
 

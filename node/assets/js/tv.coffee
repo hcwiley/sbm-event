@@ -1,4 +1,5 @@
 #= require jquery
+#= require isotope.min.js
 #= require underscore
 # =require backbone
 #= require bootstrapManifest
@@ -10,6 +11,9 @@
 @a.entries = {}
 
 $(window).ready ->
+  $("#level1 > div").isotope
+    itemSelector: '.level1',
+    layoutMode : 'masonry'
   # set up the socket.io and OSC
   socket = io.connect() 
 
@@ -24,16 +28,19 @@ $(window).ready ->
   socket.on "scrolled", (top) ->
     $('#level1').stop().animate {
       scrollTop: "#{top}px"
-    }, 200
+    }, 50
 
   socket.on "clicked", (data) ->
     if data.div == "#home"
-      a.resetTiles()
+      #a.resetTiles()
       $('#home').hide()
       $("#level1 > div:not(##{data.id})").addClass "hidden"
       $("#level1 ##{data.id}").removeClass "hidden"
       $('#level1').fadeIn(500)
       a.animateTiles("#{data.id}")
+      #$("#level1 ##{data.id}").isotope
+        #itemSelector: '.level1',
+        #layoutMode : 'masonry'
     else
       a.handleBucketClick $("#level1 ##{data.id} .level1")[data.div]
 
@@ -52,7 +59,7 @@ $(window).ready ->
 
   socket.on "buckets", (data) ->
     for id, html of data
-      $("#level1 #{id}")?.remove()
+      $("#level1 ##{id}")?.remove()
       buckets = $("<div id='#{id}'></div>")
       $(buckets).append "#{html}"
       $("#level1").append buckets

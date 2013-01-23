@@ -26,15 +26,12 @@ html, body {
   }
 }
 #main{
-  scroll: none;
   /*position: fixed;*/
   top: 0px;
   left: 0px;
   display: block;
   width: 100%;
   height: 100%;
-  background-size: 100%;
-  background-repeat: no-repeat;
 }
 
 
@@ -42,22 +39,30 @@ html, body {
   position: absolute;
   display: none;
   overflow-x: hidden;
-  overflow-y: visible;
+  overflow-y: scroll;
   width: 100%;
   height: 100%;
+  div{
+    float: left;
+  }
   .level1 {
-    position: absolute;
-    top: -1000px;
-    left: -1000px;
+    float: left;
     width: 200px;
     height: 200px;
+    margin: 10px;
+    position: static;
     img {
-      position: absolute;
-      top: 0px;
-      left: 0px;
+      /*position: absolute;*/
+      /*top: 0px;*/
+      /*left: 0px;*/
       height: 100%;
-      width: auto;
+      width: 100%;
+      /*width: auto;*/
     }
+  }
+  .level1.open{
+    position: fixed;
+    z-index: 100;
   }
 }
 
