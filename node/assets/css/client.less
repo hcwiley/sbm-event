@@ -13,7 +13,7 @@ html, body {
 @hoverColor:#ebb;
 
 #home{
-  position: fixed;
+  position: absolute;
   top: 0px;
   left: 0px;
   width: 100%;
@@ -26,15 +26,13 @@ html, body {
   }
 }
 #main{
-  scroll: none;
   /*position: fixed;*/
   top: 0px;
   left: 0px;
   display: block;
   width: 100%;
   height: 100%;
-  background-size: 100%;
-  background-repeat: no-repeat;
+  z-index: 5;
 }
 
 
@@ -42,21 +40,73 @@ html, body {
   position: absolute;
   display: none;
   overflow-x: hidden;
-  overflow-y: visible;
+  overflow-y: scroll;
   width: 100%;
   height: 100%;
+  z-index: 3;
+  > div{
+    float: left;
+  }
   .level1 {
-    position: absolute;
-    top: -1000px;
-    left: -1000px;
+    float: left;
+    opacity: 0
     width: 200px;
     height: 200px;
-    img {
-      position: absolute;
-      top: 0px;
-      left: 0px;
+    margin: 10px;
+    position: static;
+    background: #000;
+    .img-wrapper {
+      float: none;
+      position: relative;
+      margin: auto;
+      overflow: hidden;
+      /*top: 0px;*/
+      /*left: 0px;*/
       height: 100%;
-      width: auto;
+      width: 100%;
+      /*background: #fff;*/
+      text-align: center;
+      /*width: auto;*/
+      img {
+        width: 100%;
+        height: auto;
+      }
+    }
+    .text{
+      z-index: 110;
+      display: none;
+      /*height: */
+      italic {
+        font-style: italic;
+      }
+    }
+  }
+  .level1.open{
+    position: fixed;
+    z-index: 100;
+
+    .img-wrapper {
+      height: 80%;
+      width: 100%;
+      margin: 20px 0px;
+      text-align: center;
+      img {
+        position: relative;
+        height: 100%;
+        width: auto;
+      }
+    }
+
+    .text{
+      position: relative;
+      display: block;
+      color: #fff;
+      top: 0px;
+      left: 100px;
+      height: 150px;
+      width: 100%;
+      font-size: 20px;
+      /*height: */
     }
   }
 }

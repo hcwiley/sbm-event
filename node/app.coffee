@@ -84,8 +84,9 @@ doSecondLevel = (first, second, next) ->
   fs.readdir "#{basePath}#{first}/#{second}", (err, files) ->
     files = files.toString().replace(".DS_Store,","").split(',')
     count = 0
+    console.log "files #{files.length}"
     for file in files
-      doFileLevel(first, second, file, count++, (i) ->
+      doFileLevel(first, second, file.toLowerCase(), count++, (i) ->
         if "#{i}" == "#{( files.length - 1 )}"
           next(second)
       )
@@ -100,7 +101,7 @@ doFileLevel = (first, second, file, count, next) ->
       content[first][second][file] = content[first][second][file] || {}
       content[first][second][file].text = "#{lines}"
       next(count)
-  else if file.toLowerCase().match(".jpg") || file.toLowerCase().match(".png")
+  else if file.match(".jpg") || file.match(".png")
     name = file.replace(".jpg","").replace(".png","")
     content[first][second][name] = content[first][second][name] || {}
     #console.log "first: #{first}, second #{second}, file #{name}"
@@ -129,7 +130,7 @@ io.sockets.on "connection",  (socket) ->
   socket.on "pageId", (msg) ->
     if "#{msg}" == "#{-1}"
       tvSocket = socket
-      tvSocket.emit "active", -1
+      tvSocket?.emit "active", -1
     else
       activePages[msg] = socket.id
       socketMap[socket.id] = socket
@@ -159,6 +160,7 @@ io.sockets.on "connection",  (socket) ->
 
   socket.on "buckets", (data) ->
     buckets[data.id] = data.buckets
+    tvSocket?.emit "buckets", buckets
 
   socket.on "getBuckets", () ->
     tvSocket?.emit "buckets", buckets
@@ -176,23 +178,27 @@ io.sockets.on "connection",  (socket) ->
   socket.on "click", (data) ->
     tvSocket?.emit "clicked", data
 
+  socket.on "scroll", (data) ->
+    tvSocket?.emit "scrolled", data
+
+
   activatePage = (id) ->
-    socketMap[id].emit "activate", "foo"
-    tvSocket.emit "active", id
+    socketMap[id]?.emit "activate", "foo"
+    tvSocket?.emit "active", id
     socket
     count = Object.keys socketMap
     for i in count
       if i != id
-        socketMap[i].emit "deactivate", "foo"
+        socketMap[i]?.emit "deactivate", "foo"
 
   # this flips the socket from active, then back to deactive
   delayActivateFlip = (soc, time, c, speed) ->
     speed = speed || 500
     setTimeout ->
-      soc.emit "activate", "foo"
+      soc?.emit "activate", "foo"
     , speed * c
     setTimeout ->
-      soc.emit "deactivate", "foo"
+      soc?.emit "deactivate", "foo"
     , speed * ( c + 1 )
 
   # this does a cycle of all screens calling delayActiveFlip
@@ -210,7 +216,7 @@ io.sockets.on "connection",  (socket) ->
     times = times || 2
     length = Object.keys socketMap
     for i in length
-      socketMap[i].emit "deactivate", "foo"
+      socketMap[i]?.emit "deactivate", "foo"
     time = 0
     speed = 500
     while time < times
