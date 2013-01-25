@@ -68,7 +68,7 @@ doFirstLevel = (first, next) ->
   fs.readdir "#{basePath}#{first}", (err, secondLevel) ->
     secondLevel = secondLevel.toString().replace(".DS_Store,","").split(',')
     for second in secondLevel
-      console.log("second: #{second}")
+      #console.log("second: #{second}")
       doSecondLevel(first, second, (i) ->
         if "#{i}" == "#{( secondLevel.length - 2 )}"
           next(first)
@@ -79,9 +79,9 @@ doSecondLevel = (first, second, next) ->
   fs.readdir "#{basePath}#{first}/#{second}", (err, files) ->
     files = files.toString().replace(".DS_Store,","").split(',')
     count = 0
-    console.log "files #{files.length}"
+    #console.log "files #{files.length}"
     for file in files
-      doFileLevel(first, second, file.toLowerCase(), count++, (i) ->
+      doFileLevel(first, second, file, count++, (i) ->
         if "#{i}" == "#{( files.length - 1 )}"
           next(second)
       )
@@ -96,8 +96,10 @@ doFileLevel = (first, second, file, count, next) ->
       content[first][second][file] = content[first][second][file] || {}
       content[first][second][file].text = "#{lines}"
       next(count)
-  else if file.match(".jpg") || file.match(".png")
-    name = file.replace(".jpg","").replace(".png","")
+  else
+    name = file.split "."
+    name = name[0]
+    #console.log "#{name} - #{file}"
     content[first][second][name] = content[first][second][name] || {}
     #console.log "first: #{first}, second #{second}, file #{name}"
     content[first][second][name].img = "#{urlBase}#{first}/#{second}/#{file}"
@@ -179,7 +181,6 @@ io.sockets.on "connection",  (socket) ->
 
 
   sockFuncs.activatePage = (pageId) ->
-    console.log pageId
     console.log activePages[pageId]
     activatePage activePages[pageId]
     
