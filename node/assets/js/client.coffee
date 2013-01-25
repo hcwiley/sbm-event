@@ -151,7 +151,10 @@ $(window).ready ->
   doBucket = (json, i) ->
     for j, level1 of json
       #console.log "#{j} -> "
-      level1.text = level1.text || "foo"
+      if !level1.img
+        console.log j
+        console.log level1
+      level1.text = level1.text || ""
       div = $(_.template($('#square-template').html(), level1))
       $('#level1').append(div)
       $(div).attr "id", "#{i}-#{j.toLowerCase().replace(".jpg","")}"
