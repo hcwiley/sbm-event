@@ -21,7 +21,7 @@
     "connect-mongo"         : "*",
     "socket.io"             : "0.9.6",
     "socket.io-client"      : "*",
-    "osc.io"                : "0.0.2",
+    "node-osc"                : "*",
     "twitter-bootstrap"     : "*",
     "supervisor"            : "0.3.2"
   }

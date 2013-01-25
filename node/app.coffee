@@ -6,7 +6,7 @@ express = require("express")
 path = require("path")
 http = require("http")
 socketIo = require("socket.io")
-osc = require("osc.io")
+osc = require("node-osc")
 mongoose = require("mongoose")
 MongoStore = require("connect-mongo")(express)
 sessionStore = new MongoStore(url: config.mongodb)
@@ -48,11 +48,6 @@ app.configure ->
   app.use app.router
   app.use require("less-middleware")(src: __dirname + "/public")
   app.use express.static(path.join(__dirname, "public"))
-  app.use osc(io,
-    log: false
-  )
-  
-  app.use(osc(io));
   app.use express.errorHandler()  if config.useErrorHandler
 
 entries = {}
@@ -126,6 +121,7 @@ getContent ->
   for i in count
     socketMap[i]?.emit "content", "#{JSON.stringify(content)}"
 
+sockFuncs = {}
 io.sockets.on "connection",  (socket) ->
   socket.on "pageId", (msg) ->
     if "#{msg}" == "#{-1}"
@@ -136,11 +132,11 @@ io.sockets.on "connection",  (socket) ->
       socketMap[socket.id] = socket
       controller?.emit "activePages", activePages
 
-    socket.emit "content", content[msg]
+    socket?.emit "content", content[msg]
 
     console.log socket.id
 
-  socket.emit "connection", "I am your father"
+  socket?.emit "connection", "I am your father"
 
   socket.on "disconnect", ->
     delete activePages[socket.id]
@@ -182,6 +178,11 @@ io.sockets.on "connection",  (socket) ->
     tvSocket?.emit "scrolled", data
 
 
+  sockFuncs.activatePage = (pageId) ->
+    console.log pageId
+    console.log activePages[pageId]
+    activatePage activePages[pageId]
+    
   activatePage = (id) ->
     socketMap[id]?.emit "activate", "foo"
     tvSocket?.emit "active", id
@@ -223,6 +224,15 @@ io.sockets.on "connection",  (socket) ->
       doCycle(time++, speed)
 
 
+oscServer = new osc.Server 3333, '0.0.0.0'
+
+oscServer.on "message", (msg, info) ->
+  console.log msg
+  if msg[0].match "/active"
+    screen = "#{msg[1].replace("\\n","").replace("\\r", "")}"
+    console.log "screen: #{screen}"
+    screen = parseInt screen
+    sockFuncs.activatePage screen
 
 # UI routes
 app.get "/", (req, res) ->
