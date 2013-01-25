@@ -33,7 +33,7 @@ using namespace std;
 // Global variables
 int		width = 1;
 int		height = 1;
-CvFont	_idFont;
+//CvFont	_idFont;
 
 cv::RNG rng(12345);
 
@@ -41,18 +41,11 @@ cv::RNG rng(12345);
 const double MHI_DURATION = 1;
 const double MAX_TIME_DELTA = 0.5;
 const double MIN_TIME_DELTA = 0.05;
-// number of cyclic frame buffer used for motion detection
-// (should, probably, depend on FPS)
-const int N = 4;
-
-// ring image buffer
-IplImage **buf = 0;
-int last = 0;
-
 
 typedef cv::vector<cv::vector<cv::Point> > TContours;
 
 TContours templateContour;
+TContours liveContour;
 
 void newTemplateImage(cv::Mat * templateMat, cv::Mat * grayMat){
   printf("capture new template image\n");
@@ -93,11 +86,11 @@ void newTemplateImage(cv::Mat * templateMat, cv::Mat * grayMat){
         first = i;
       }
       templateContour[0].insert(templateContour[0].end(), contours[i].begin(), contours[i].end());
-      cv::Scalar color = cv::Scalar( 255,0,0);
-      drawContours( *templateMat, contours, i, color, 2, 8, hierarchy, 0, cv::Point() );
     }
   }
-  //momentsTemplate = CvMoments(templateMat, 0);
+  cv::convexHull(templateContour[0], templateContour[0], false);
+  cv::Scalar color = cv::Scalar( 255,0,0);
+  drawContours( *templateMat, templateContour, 0, color, 2, 8, hierarchy, 0, cv::Point() );
 }
 
 
@@ -121,18 +114,22 @@ int main( int argc, const char** argv )
   cv::vector<cv::Point> foo;
   foo.push_back(cv::Point());
   templateContour.push_back(foo);
+  liveContour.push_back(foo);
 
   //templateContour = cv::vector<cv::vector<cv::Point> >;
 
   bool run = true;
 
   // Initialize the Font used to draw into the source image
-  cvInitFont ( &_idFont, CV_FONT_VECTOR0, 0.5, 0.5, 0.0, 1 );
+  //cvInitFont ( &_idFont, CV_FONT_VECTOR0, 0.5, 0.5, 0.0, 1 );
 
 
 
   capture = cvCaptureFromCAM( 0 ); //0=default, -1=any camera, 1..99=your camera
   if(!capture) cout << "No camera detected" << endl;
+
+  cvSetCaptureProperty ( capture, CV_CAP_PROP_FRAME_WIDTH, 640 );
+  cvSetCaptureProperty ( capture, CV_CAP_PROP_FRAME_HEIGHT, 480 );
 
   width	= (int) cvGetCaptureProperty ( capture, CV_CAP_PROP_FRAME_WIDTH );
   height	= (int) cvGetCaptureProperty ( capture, CV_CAP_PROP_FRAME_HEIGHT );
@@ -142,6 +139,11 @@ int main( int argc, const char** argv )
   //cvNamedWindow( "edges", 1 );
   cvNamedWindow( "difference", 1 );
   cvNamedWindow( "template", 1 );
+
+  cv::resizeWindow("live", 640, 480);//50, 50);
+  cv::resizeWindow("template", 640, 480);//700, 50);
+  cv::resizeWindow("difference", 640, 480);// 700, 500);
+  cv::resizeWindow("gray", 640, 480);// 50, 500);
 
   cv::moveWindow("live", 50, 50);
   cv::moveWindow("template", 700, 50);
@@ -169,18 +171,6 @@ int main( int argc, const char** argv )
   difference = cvCreateImage ( cvSize ( width, height ), IPL_DEPTH_8U, 3 );
   if ( !difference ) {
     printf ( "failed to create difference image!!!\n" );
-    exit(-1);
-  }
-
-  mhi = cvCreateImage ( cvSize ( width, height ), IPL_DEPTH_32F, 1 );
-  if ( !mhi ) {
-    printf ( "failed to create mhi image!!!\n" );
-    exit(-1);
-  }
-
-  orient = cvCreateImage ( cvSize ( width, height ), IPL_DEPTH_32F, 1 );
-  if ( !orient ) {
-    printf ( "failed to create orient image!!!\n" );
     exit(-1);
   }
 
@@ -235,13 +225,24 @@ int main( int argc, const char** argv )
 
 
       /// Draw contours
+      int first = contours.size() + 1;
       for( int i = 0; i< contours.size(); i++ )
       {
-        if( contourArea(contours[i]) > 50){
-          cv::Scalar color = cv::Scalar(255,0,0);
-          drawContours( frame, contours, i, color, 2, 8, hierarchy, 0, cv::Point() );
+        if( contourArea(contours[i]) > 10){
+          if ( first > i){
+            liveContour.clear();
+            liveContour.push_back(contours[i]);
+            first = i;
+          }
+          liveContour[0].insert(liveContour[0].end(), contours[i].begin(), contours[i].end());
         }
       }
+
+      cv::convexHull(liveContour[0], liveContour[0], false);
+      cv::Scalar color = cv::Scalar(255,0,0);
+      drawContours( frame, liveContour, 0, color, 2, 8, hierarchy, 0, cv::Point() );
+
+      printf("match: %f\n", cv::matchShapes(liveContour[0], templateContour[0], CV_CONTOURS_MATCH_I3, 0));
 
 
 
