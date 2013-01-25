@@ -39,8 +39,8 @@ a.animateTiles = (id)  ->
       setTimeout ->
         $(me).animate {
           opacity: 1
-        }, 300
-      , $(me).index() * 200
+        }, 200
+      , $(me).index() * 100
         
       #$(me).animate {
         #left: $(me).attr("left"),
