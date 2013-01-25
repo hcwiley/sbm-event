@@ -25,6 +25,9 @@ $(window).ready ->
     a.computeTiles()
     setRandomHero()
     $("#home").fadeIn 400
+    $("#home").animate {
+      opacity: 1
+    }, 400
     $("#level1").fadeOut()
     a.isActive = true;
     #$("#level1").fadeIn()
@@ -37,6 +40,9 @@ $(window).ready ->
     #setRandomHero()
     a.isActive = false;
     $("#home").fadeIn 400
+    $("#home").animate {
+      opacity: .4
+    }, 400
     $("#level1").fadeOut()
     #$('#content').hide()
 
