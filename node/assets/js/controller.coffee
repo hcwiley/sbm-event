@@ -18,7 +18,7 @@
 
 $(window).ready ->
   # set up the socket.io and OSC
-  socket = io.connect "http://localhost" 
+  socket = io.connect()
 
   socket.on "connection", (data) ->
     socket.emit "getPages", ""
